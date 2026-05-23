@@ -189,3 +189,65 @@ git reset --hard
 - **Nunca corras `npm install` o `pip install` fuera de Docker**. Siempre usa `docker compose exec`.
 - Los cambios de código en `frontend/`, `backend/` y `simulator/` se reflejan sin hacer rebuild gracias a los volúmenes montados.
 - Si agregas un nuevo servicio o cambias un Dockerfile, avisa al equipo para que todos hagan `docker compose up --build`.
+
+---
+
+## Flujo de trabajo con Git
+
+### Ramas
+
+```
+main (estable, protegido)
+└── dev (rama base para integración)
+    ├── feat/reservas
+    ├── feat/bitacora
+    └── feat/alertas
+```
+
+### Cómo trabajar en una feature
+
+**1. Siempre parte de `dev`:**
+```bash
+git checkout dev
+git checkout -b feat/nombre-de-tu-feature
+```
+
+**2. Trabaja en tu rama, haz commits:**
+```bash
+git add .
+git commit -m "feat: descripción de lo que hiciste"
+```
+
+**3. Sube tu rama al repositorio:**
+```bash
+git push -u origin feat/nombre-de-tu-feature
+```
+
+**4. Crea un Pull Request (PR) a `dev`** en GitHub.
+
+**5. Cuando el PR esté aprobado, haz merge a `dev`.**
+
+### Reglas importantes
+
+- **Nunca hagas commit directo a `main` ni a `dev`**
+- **El título del commit** debe seguir el formato: `feat: descripción` o `fix: descripción`
+- **La descripción del PR** debe incluir: qué cambiaste, cómo probarlo, y notas para el revisor
+
+### Si tu feature depende de otra que aún no existe
+
+1. Construye tu feature usando **datos mock** o **stubs de interfaz**
+2. Documenta en la descripción del PR exactamente qué necesitas de la otra feature
+3. Usa el template de "Contract interface" en `AGENTS.md` para dejar claro qué datos esperas
+
+### Sincronizar tu rama con dev
+
+Si `dev` avanzó mientras trabajas en tu feature:
+
+```bash
+git checkout dev
+git pull
+git checkout feat/tu-feature
+git merge dev
+```
+
+Resolve conflictos si hay y haz commit del merge.
