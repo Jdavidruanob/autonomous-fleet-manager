@@ -1,34 +1,9 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { Order, OrderStatus } from "@/types/device";
+import { mockOrders } from "@/lib/mock-data";
+import { OrderStatus } from "@/types/device";
 import { Badge } from "@/components/ui/badge";
 import { Clock, CheckCircle2, XCircle, Loader2, ArrowRight } from "lucide-react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
-
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchOrders() {
-      try {
-        const response = await fetch(`${API_BASE}/api/orders`);
-        if (response.ok) {
-          const data = await response.json();
-          setOrders(data);
-        }
-      } catch (error) {
-        console.error("Error fetching orders:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchOrders();
-  }, []);
-
   const getStatusConfig = (status: OrderStatus) => {
     switch (status) {
       case "pending":
@@ -60,7 +35,7 @@ export default function OrdersPage() {
       </div>
 
       <div className="rounded-md border bg-card overflow-hidden">
-        <div className="relative w-full overflow-auto min-h-[400px]">
+        <div className="relative w-full overflow-auto">
           <table className="w-full caption-bottom text-sm">
             <thead className="[&_tr]:border-b bg-muted/30">
               <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
@@ -73,61 +48,38 @@ export default function OrdersPage() {
               </tr>
             </thead>
             <tbody className="[&_tr:last-child]:border-0">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="h-48 text-center align-middle">
-                    <div className="flex flex-col items-center justify-center text-muted-foreground">
-                      <Loader2 className="h-8 w-8 animate-spin mb-4" />
-                      <p>Cargando bitácora...</p>
-                    </div>
-                  </td>
-                </tr>
-              ) : orders.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="h-48 text-center align-middle text-muted-foreground">
-                    No hay órdenes registradas.
-                  </td>
-                </tr>
-              ) : (
-                orders.map((order) => {
-                  const statusConfig = getStatusConfig(order.status);
-                  const StatusIcon = statusConfig.icon;
-                  // Handle potential UUID display
-                  const displayId = order.id.split("-")[0].toUpperCase();
+              {mockOrders.map((order) => {
+                const statusConfig = getStatusConfig(order.status);
+                const StatusIcon = statusConfig.icon;
 
-                  return (
-                    <tr key={order.id} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                      <td className="p-4 align-middle font-medium">{displayId}...</td>
-                      <td className="p-4 align-middle text-muted-foreground whitespace-nowrap">
-                        {formatDate(order.createdAt)}
-                      </td>
-                      <td className="p-4 align-middle">
-                        <div className="flex items-center gap-2">
-                          <span className="truncate max-w-[150px] font-medium" title={order.origin}>{order.origin}</span>
-                          {order.destination && (
-                            <>
-                              <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                              <span className="truncate max-w-[150px] font-medium" title={order.destination}>{order.destination}</span>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-4 align-middle text-muted-foreground">
-                        {order.deviceName} <span className="text-xs opacity-70">({order.deviceId})</span>
-                      </td>
-                      <td className="p-4 align-middle text-muted-foreground">
-                        {order.requesterName}
-                      </td>
-                      <td className="p-4 align-middle">
-                        <Badge variant={statusConfig.variant} className="flex w-fit items-center gap-1.5 px-2.5 py-1">
-                          <StatusIcon className={`h-3.5 w-3.5 ${order.status === 'in_progress' ? 'animate-spin' : ''}`} />
-                          {statusConfig.label}
-                        </Badge>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
+                return (
+                  <tr key={order.id} className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+                    <td className="p-4 align-middle font-medium">{order.id}</td>
+                    <td className="p-4 align-middle text-muted-foreground whitespace-nowrap">
+                      {formatDate(order.createdAt)}
+                    </td>
+                    <td className="p-4 align-middle">
+                      <div className="flex items-center gap-2">
+                        <span className="truncate max-w-[150px] font-medium" title={order.origin}>{order.origin}</span>
+                        <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <span className="truncate max-w-[150px] font-medium" title={order.destination}>{order.destination}</span>
+                      </div>
+                    </td>
+                    <td className="p-4 align-middle text-muted-foreground">
+                      {order.deviceName || "-"}
+                    </td>
+                    <td className="p-4 align-middle text-muted-foreground">
+                      {order.requesterName}
+                    </td>
+                    <td className="p-4 align-middle">
+                      <Badge variant={statusConfig.variant} className="flex w-fit items-center gap-1.5 px-2.5 py-1">
+                        <StatusIcon className={`h-3.5 w-3.5 ${order.status === 'in_progress' ? 'animate-spin' : ''}`} />
+                        {statusConfig.label}
+                      </Badge>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

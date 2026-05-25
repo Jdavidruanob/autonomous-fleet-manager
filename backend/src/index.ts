@@ -8,7 +8,6 @@ import devicesRouter from "./routes/devices";
 import dashboardRouter from "./routes/dashboard";
 import telemetryRouter from "./routes/telemetry";
 import campusPointsRouter from "./routes/campus-points";
-import ordersRouter from "./routes/orders";
 
 const app = express();
 const port = process.env.PORT ?? 4000;
@@ -20,7 +19,6 @@ app.use("/api/devices", devicesRouter);
 app.use("/api/dashboard/kpis", dashboardRouter);
 app.use("/api/telemetry", telemetryRouter);
 app.use("/api/campus-points", campusPointsRouter);
-app.use("/api/orders", ordersRouter);
 
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
