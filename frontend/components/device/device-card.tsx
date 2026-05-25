@@ -31,7 +31,7 @@ export function DeviceCard({ device }: Props) {
           <div className="text-xs text-muted-foreground">{typeLabels[device.type]}</div>
         </div>
         <div className="flex flex-col items-end gap-0.5">
-          <DeviceStatusBadge status={device.status} subStatus={device.subStatus} />
+          <DeviceStatusBadge status={device.status} />
           <DeviceSubStatusLabel subStatus={device.subStatus} />
         </div>
       </div>
