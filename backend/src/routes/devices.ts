@@ -38,6 +38,44 @@ router.get("/", async (_req, res) => {
   }
 });
 
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const row = await queryOne<DeviceRow & { signal_lost: boolean | null }>(
+      `SELECT d.*,
+              (SELECT t.signal_lost FROM telemetry t WHERE t.device_id = d.id ORDER BY t.recorded_at DESC LIMIT 1) as signal_lost
+       FROM devices d
+       WHERE d.id = $1`,
+      [id]
+    );
+
+    if (!row) {
+      return res.status(404).json({ error: "Device not found" });
+    }
+
+    const device: Device = {
+      id: row.id,
+      name: row.name,
+      code: row.code,
+      type: row.type as Device["type"],
+      status: row.status as Device["status"],
+      subStatus: row.sub_status as Device["subStatus"],
+      batteryLevel: Number(row.battery_level),
+      accumulatedKm: Number(row.accumulated_km),
+      flightHours: Number(row.flight_hours),
+      currentRoute:
+        row.current_route_origin && row.current_route_destination
+          ? { origin: row.current_route_origin, destination: row.current_route_destination }
+          : null,
+    };
+
+    res.json(device);
+  } catch (err) {
+    console.error("GET /api/devices/:id error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.patch("/:id", async (req, res) => {
   try {
     const { id } = req.params;

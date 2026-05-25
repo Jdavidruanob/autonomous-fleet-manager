@@ -2,6 +2,12 @@
 
 Fleet Control PUJ is an internal operations dashboard for autonomous delivery robots and event-recording drones at Pontificia Universidad Javeriana Cali. The product has two roles, `operator` and `administrator`, and will eventually coordinate orders, telemetry, alerts, weather restrictions, QR-based delivery flows, and a Python simulator.
 
+## Demo Scope
+
+This codebase is a **working demo** that implements **10 specific requirements** (RF-01, RF-04, RF-05, RF-06, RF-09, RF-18, RF-19, RF-20, RF-21, RF-23) out of the 60 modeled for the complete system. The goal is that these 10 requirements work correctly and match their specification exactly.
+
+See [SPEC.md](SPEC.md) for the full context.
+
 Current repository status:
 - Frontend shell initialized in Next.js with header, bottom dock, demo navigation, and placeholder pages.
 - Backend initialized in Express + TypeScript with only the base server bootstrapped.

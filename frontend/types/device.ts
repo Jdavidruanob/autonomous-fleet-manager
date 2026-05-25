@@ -21,3 +21,16 @@ export interface DashboardKpis {
   ordersCompletedToday: number;
   ordersCancelledToday: number;
 }
+
+export type OrderStatus = "pending" | "in_progress" | "completed" | "cancelled";
+
+export interface Order {
+  id: string;
+  createdAt: string;
+  origin: string;
+  destination: string;
+  status: OrderStatus;
+  deviceId?: string;
+  deviceName?: string;
+  requesterName: string;
+}

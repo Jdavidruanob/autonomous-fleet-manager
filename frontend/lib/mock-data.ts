@@ -50,3 +50,66 @@ export const pageTitles: Record<string, string> = {
   "/settings": "Configuracion",
   "/profile": "Perfil"
 };
+
+import { Order } from "../types/device";
+
+export const mockOrders: Order[] = [
+  {
+    id: "ORD-001",
+    createdAt: "2026-05-24T08:30:00Z",
+    origin: "Edificio de Ingeniería",
+    destination: "Cafetería Central",
+    status: "completed",
+    deviceId: "D-01",
+    deviceName: "Dron Halcón",
+    requesterName: "Dr. Alberto Gómez"
+  },
+  {
+    id: "ORD-002",
+    createdAt: "2026-05-24T09:15:00Z",
+    origin: "Biblioteca",
+    destination: "Laboratorio 3",
+    status: "in_progress",
+    deviceId: "R-02",
+    deviceName: "Robot Cargo",
+    requesterName: "María Rodríguez"
+  },
+  {
+    id: "ORD-003",
+    createdAt: "2026-05-24T10:05:00Z",
+    origin: "Rectoría",
+    destination: "Sala de Juntas",
+    status: "cancelled",
+    deviceId: "D-02",
+    deviceName: "Dron Águila",
+    requesterName: "Secretaría General"
+  },
+  {
+    id: "ORD-004",
+    createdAt: "2026-05-24T11:20:00Z",
+    origin: "Edificio de Artes",
+    destination: "Edificio de Ciencias",
+    status: "pending",
+    requesterName: "Prof. Luis Fernández"
+  },
+  {
+    id: "ORD-005",
+    createdAt: "2026-05-24T11:45:00Z",
+    origin: "Centro de Estudiantes",
+    destination: "Edificio de Ingeniería",
+    status: "in_progress",
+    deviceId: "R-01",
+    deviceName: "Robot Express",
+    requesterName: "Juan Pérez"
+  },
+  {
+    id: "ORD-006",
+    createdAt: "2026-05-24T12:10:00Z",
+    origin: "Parqueadero Norte",
+    destination: "Edificio Administrativo",
+    status: "completed",
+    deviceId: "D-03",
+    deviceName: "Dron Vigía",
+    requesterName: "Seguridad Campus"
+  }
+];
