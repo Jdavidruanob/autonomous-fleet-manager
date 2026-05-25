@@ -90,6 +90,8 @@ export const mockOrders: Order[] = [
     origin: "Edificio de Artes",
     destination: "Edificio de Ciencias",
     status: "pending",
+    deviceId: "UNASSIGNED",
+    deviceName: "Sin asignar",
     requesterName: "Prof. Luis Fernández"
   },
   {
