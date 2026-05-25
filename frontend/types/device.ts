@@ -28,9 +28,9 @@ export interface Order {
   id: string;
   createdAt: string;
   origin: string;
-  destination: string;
+  destination: string | null;
   status: OrderStatus;
-  deviceId?: string;
-  deviceName?: string;
+  deviceId: string;
+  deviceName: string;
   requesterName: string;
 }
