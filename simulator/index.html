@@ -3,143 +3,475 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simulador de Flota</title>
+  <title>PUJ Fleet Simulator</title>
   <style>
+    :root {
+      --background: #f8fafc;
+      --foreground: #0f172a;
+      --primary: #1d58dc;
+      --primary-hover: #1746b3;
+      --primary-foreground: #fcfcfc;
+      --card: #ffffff;
+      --card-border: #e2e8f0;
+      --success: #20a04e;
+      --success-bg: #dcfce7;
+      --success-text: #15803d;
+      --info: #0a8fd1;
+      --info-bg: #e0f2fe;
+      --info-text: #0369a1;
+      --warning: #f2a618;
+      --warning-bg: #fef3c7;
+      --warning-text: #b45309;
+      --destructive: #df2225;
+      --destructive-bg: #fee2e2;
+      --destructive-text: #b91c1c;
+      --muted-foreground: #64748b;
+      --border: #cbd5e1;
+      --radius: 12px;
+      --radius-sm: 6px;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    
     body {
-      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
-      background: #f4f4f5;
-      color: #1a1a2e;
+      font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+      background: var(--background);
+      color: var(--foreground);
+      padding: 32px 24px;
+      line-height: 1.5;
+    }
+
+    header {
+      max-width: 1400px;
+      margin: 0 auto 32px auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .title-area h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--foreground);
+      letter-spacing: -0.5px;
+    }
+
+    .title-area p {
+      font-size: 0.9rem;
+      color: var(--muted-foreground);
+      margin-top: 4px;
+    }
+
+    /* Simulation Control Banner */
+    .sim-banner {
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto 32px auto;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
       padding: 24px;
-    }
-    h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 8px; }
-    p { font-size: 0.875rem; color: #6b7280; margin-bottom: 24px; }
-    .grid {
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -2px rgba(0,0,0,0.05);
       display: grid;
-      gap: 16px;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      grid-template-columns: 1fr;
+      gap: 24px;
     }
+    @media(min-width: 768px) {
+      .sim-banner { grid-template-columns: 1.5fr 1fr; }
+    }
+
+    .clock-section {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .sim-clock-display {
+      background: #0f172a;
+      color: #38bdf8;
+      font-family: monospace;
+      font-size: 2.5rem;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 8px;
+      letter-spacing: 1px;
+      min-width: 150px;
+      text-align: center;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .clock-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .clock-btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .speed-btn-group {
+      display: flex;
+      gap: 4px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease-in-out;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-primary { background: var(--primary); color: var(--primary-foreground); }
+    .btn-primary:hover { background: var(--primary-hover); }
+    
+    .btn-secondary { background: #f1f5f9; border-color: #cbd5e1; color: #334155; }
+    .btn-secondary:hover { background: #e2e8f0; }
+
+    .btn-destructive { background: var(--destructive); color: white; }
+    .btn-destructive:hover { opacity: 0.9; }
+
+    .btn-active { background: #0f172a; color: white; border-color: #0f172a; }
+
+    .time-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .time-selector input[type="time"] {
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .reset-section {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      border-top: 1px solid var(--card-border);
+      padding-top: 20px;
+    }
+    @media(min-width: 768px) {
+      .reset-section {
+        border-top: none;
+        border-left: 1px solid var(--card-border);
+        padding-top: 0;
+        padding-left: 24px;
+      }
+    }
+
+    .reset-section h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .reset-section p {
+      font-size: 0.8rem;
+      color: var(--muted-foreground);
+      margin-bottom: 12px;
+    }
+
+    /* Main Grid */
+    .grid {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      gap: 24px;
+      grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    }
+
+    /* Device Card Styles */
     .card {
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 20px;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 1px 3px 0 rgba(0,0,0,0.05);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
+
     .card-header {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
+      gap: 14px;
+      border-bottom: 1px solid #f1f5f9;
+      padding-bottom: 16px;
     }
+
     .card-header .icon {
-      width: 40px; height: 40px;
-      border-radius: 8px;
+      width: 48px; height: 48px;
+      border-radius: var(--radius-sm);
       display: grid;
       place-items: center;
-      font-size: 0.75rem;
-      font-weight: 700;
+      font-size: 0.8rem;
+      font-weight: 800;
     }
-    .card-header .icon.robot { background: #dbeafe; color: #1d4ed8; }
-    .card-header .icon.drone { background: #e0f2fe; color: #0369a1; }
-    .card-header .info .code { font-weight: 600; font-size: 0.95rem; }
-    .card-header .info .type { font-size: 0.75rem; color: #6b7280; }
-    .field { margin-bottom: 12px; }
-    .field label { display: block; font-size: 0.75rem; font-weight: 500; color: #6b7280; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .card-header .icon.robot { background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; }
+    .card-header .icon.drone { background: #f0fdfa; color: #0d9488; border: 1px solid #ccfbf1; }
+
+    .card-header .info .code { font-weight: 700; font-size: 1.1rem; color: var(--foreground); }
+    .card-header .info .type { font-size: 0.75rem; color: var(--muted-foreground); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+
+    .header-badges {
+      margin-left: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .status-badge.available { background: var(--success-bg); color: var(--success-text); }
+    .status-badge.in_mission { background: var(--info-bg); color: var(--info-text); }
+    .status-badge.blocked { background: var(--destructive-bg); color: var(--destructive-text); }
+    .status-badge.sub { background: #f1f5f9; color: #475569; font-weight: 500; }
+
+    /* Forms and Controls */
+    .control-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
     .field input, .field select {
       width: 100%;
-      padding: 6px 10px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      font-size: 0.875rem;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 0.85rem;
+      color: var(--foreground);
       outline: none;
+      background: #ffffff;
+      transition: border-color 0.15s;
     }
-    .field input:focus, .field select:focus { border-color: #1d4ed8; }
-    .battery-row { display: flex; align-items: center; gap: 10px; }
-    .battery-row input[type="range"] { flex: 1; }
-    .battery-row span { font-size: 0.875rem; font-weight: 500; min-width: 40px; text-align: right; }
+    .field input:focus, .field select:focus { border-color: var(--primary); }
+
+    .battery-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .battery-row input[type="range"] {
+      flex: 1;
+      accent-color: var(--primary);
+    }
+    .battery-row span {
+      font-size: 0.85rem;
+      font-weight: 700;
+      min-width: 44px;
+      text-align: right;
+    }
     .battery-bar {
       height: 6px;
-      background: #e5e7eb;
-      border-radius: 3px;
+      background: #e2e8f0;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .battery-bar .fill { height: 100%; transition: width 0.2s, background-color 0.2s; }
+    .battery-bar .fill.low { background-color: var(--destructive); }
+    .battery-bar .fill.medium { background-color: var(--warning); }
+    .battery-bar .fill.high { background-color: var(--success); }
+
+    /* Transmission controls */
+    .trans-box {
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: 1px solid var(--border);
+    }
+    .trans-box.active {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+      color: #166534;
+    }
+    .trans-box.inactive {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: #991b1b;
+    }
+
+    /* Switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #cbd5e1;
+      transition: .3s;
+      border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px; width: 16px;
+      left: 4px; bottom: 4px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--success); }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    /* Transit status panel */
+    .transit-panel {
+      background: #f8fafc;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .transit-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+    }
+    .transit-desc {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #334155;
+    }
+    .transit-progress {
+      height: 4px;
+      background: #e2e8f0;
+      border-radius: 99px;
       overflow: hidden;
       margin-top: 4px;
     }
-    .battery-bar .fill { height: 100%; transition: width 0.2s; }
-    .battery-bar .fill.low { background: #dc2626; }
-    .battery-bar .fill.medium { background: #d97706; }
-    .battery-bar .fill.high { background: #16a34a; }
-    .sub-status-group { display: none; }
-    .sub-status-group.visible { display: block; }
-    .recording-group { display: none; }
-    .recording-group.visible { display: block; }
-    .buttons { display: flex; gap: 8px; margin-top: 16px; }
-    .btn {
-      flex: 1;
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      font-weight: 500;
-      cursor: pointer;
-      border: none;
-      transition: opacity 0.15s;
-    }
-    .btn:hover { opacity: 0.85; }
-    .btn-primary { background: #1d4ed8; color: white; }
-    .btn-secondary { background: #6b7280; color: white; }
-    .btn-outline { background: white; border: 1px solid #d1d5db; color: #374151; }
-    .status-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 0.7rem;
-      font-weight: 600;
-    }
-    .status-badge.available { background: #dcfce7; color: #166534; }
-    .status-badge.in_mission { background: #dbeafe; color: #1e40af; }
-    .status-badge.blocked { background: #fee2e2; color: #991b1b; }
-    .status-badge.sub { background: #f3f4f6; color: #6b7280; font-weight: 400; }
-    .route-display {
-      font-size: 0.8rem;
-      color: #374151;
-      padding: 6px 10px;
-      background: #f3f4f6;
-      border-radius: 6px;
-      margin-top: 8px;
-    }
-    .route-display span { font-weight: 500; }
+    .transit-progress .bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.25s linear; }
+
     .toast {
       position: fixed;
-      bottom: 20px;
-      right: 20px;
-      padding: 10px 16px;
-      background: #1a1a2e;
-      color: white;
+      bottom: 24px;
+      right: 24px;
+      padding: 12px 20px;
+      background: #0f172a;
+      color: #f8fafc;
       border-radius: 8px;
-      font-size: 0.875rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
       opacity: 0;
-      transition: opacity 0.2s;
+      transform: translateY(10px);
+      transition: all 0.2s ease-in-out;
+      z-index: 1000;
     }
-    .toast.show { opacity: 1; }
-    .loading { color: #6b7280; font-size: 0.875rem; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    
+    .loading-screen {
+      text-align: center;
+      font-size: 1rem;
+      color: var(--muted-foreground);
+      padding: 48px;
+    }
   </style>
 </head>
 <body>
-  <h1>Simulador de Flota</h1>
-  <p>Controla el estado de los dispositivos y simula rutas.</p>
-  <div id="app" class="loading">Cargando dispositivos...</div>
+  <header>
+    <div class="title-area">
+      <h1>Panel del Simulador de Flota</h1>
+      <p>Simulación continua de telemetría, tiempo virtual e incidencias.</p>
+    </div>
+  </header>
+
+  <div class="sim-banner">
+    <div class="clock-section">
+      <div>
+        <div class="sim-clock-display" id="sim-clock">00:00</div>
+      </div>
+      <div class="clock-controls">
+        <div class="clock-btn-group">
+          <button class="btn btn-primary" id="btn-play-pause" onclick="toggleClock()">Pausar</button>
+          <div class="time-selector">
+            <input type="time" id="sim-time-input" value="00:00">
+            <button class="btn btn-secondary" onclick="setManualTime()">Ajustar</button>
+          </div>
+        </div>
+        <div class="speed-btn-group">
+          <button class="btn btn-secondary btn-active" id="speed-1x" onclick="setSpeed(1)">1x</button>
+          <button class="btn btn-secondary" id="speed-10x" onclick="setSpeed(10)">10x</button>
+          <button class="btn btn-secondary" id="speed-60x" onclick="setSpeed(60)">60x (1s=1m)</button>
+          <button class="btn btn-secondary" id="speed-300x" onclick="setSpeed(300)">300x (1s=5m)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="reset-section">
+      <h3>Inicializar Simulación</h3>
+      <p>Reinicia todos los dispositivos a su estado de fábrica en la base de datos.</p>
+      <button class="btn btn-destructive" onclick="resetAllDevices()">Reiniciar Dispositivos</button>
+    </div>
+  </div>
+
+  <div id="app" class="loading-screen">Cargando dispositivos de la base de datos...</div>
   <div id="toast" class="toast"></div>
 
   <script>
     const BACKEND_URL = "http://localhost:4000";
-    const SIM_URL = "";
-    const CAMPUS_POINTS = [
-      "Edificio Almendros", "Biblioteca General", "Cafeteria Central",
-      "Edificio Cedros", "Auditorio Mayor", "Edificio El Saman",
-      "Cancha Multiple", "Porteria Principal"
-    ];
-
     let devices = [];
+    let campusPoints = {};
     let toastTimer = null;
+
+    // Simulation global clock state
+    let simSeconds = 0; // starts at 00:00 (midnight)
+    let simPlaying = true;
+    let simSpeedMultiplier = 60; // 60x speed default (1s real = 1 min sim)
+
+    // Per-device simulator configuration overrides
+    // Dict format: deviceId -> { transmissionActive, speed, temperature, sensorsStatus, cameraStatus, currentOrderId, lat, lon, progress, lastBatteryDrainSeconds }
+    let simStates = {};
 
     function showToast(msg) {
       const el = document.getElementById("toast");
@@ -156,222 +488,501 @@
     }
 
     function statusLabel(status) {
-      return { available: "Disponible", in_mission: "En servicio", blocked: "Bloqueado" }[status] || status;
+      return { available: "Disponible", in_mission: "En misión", blocked: "Bloqueado" }[status] || status;
     }
 
     function subStatusLabel(sub) {
-      return { en_base: "En base", cargando: "En base · Cargando", bateria_baja: "Batería baja", sin_senal: "Sin señal", mantenimiento: "Mantenimiento" }[sub] || sub || "";
+      return { en_base: "En base", cargando: "Cargando", bateria_baja: "Batería baja", sin_senal: "Sin señal", mantenimiento: "Mantenimiento" }[sub] || sub || "";
     }
 
+    // Toggle Play/Pause Clock
+    function toggleClock() {
+      simPlaying = !simPlaying;
+      document.getElementById("btn-play-pause").textContent = simPlaying ? "Pausar" : "Iniciar";
+      document.getElementById("btn-play-pause").className = simPlaying ? "btn btn-primary" : "btn btn-secondary";
+      showToast(simPlaying ? "Reloj iniciado" : "Reloj pausado");
+    }
+
+    // Set Speed Multiplier
+    function setSpeed(multiplier) {
+      simSpeedMultiplier = multiplier;
+      document.querySelectorAll(".speed-btn-group .btn").forEach(btn => btn.classList.remove("btn-active"));
+      
+      let btnId = "speed-1x";
+      if (multiplier === 10) btnId = "speed-10x";
+      if (multiplier === 60) btnId = "speed-60x";
+      if (multiplier === 300) btnId = "speed-300x";
+      
+      document.getElementById(btnId).classList.add("btn-active");
+      showToast(`Velocidad ajustada a ${multiplier}x`);
+    }
+
+    // Set manual time
+    function setManualTime() {
+      const val = document.getElementById("sim-time-input").value;
+      if (!val) return;
+      const parts = val.split(":");
+      const hours = parseInt(parts[0], 10);
+      const minutes = parseInt(parts[1], 10);
+      simSeconds = (hours * 3600) + (minutes * 60);
+      updateClockDisplay();
+      showToast(`Reloj ajustado a las ${val}`);
+    }
+
+    // Update global clock UI
+    function updateClockDisplay() {
+      const totalMins = Math.floor(simSeconds / 60);
+      const hours = Math.floor(totalMins / 60) % 24;
+      const mins = totalMins % 60;
+      const str = `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
+      document.getElementById("sim-clock").textContent = str;
+    }
+
+    // Reset all devices to default state
+    async function resetAllDevices() {
+      try {
+        const res = await fetch("/api/reset-simulation", { method: "POST" });
+        if (!res.ok) throw new Error("Simulator reset failed");
+        
+        simSeconds = 0;
+        simPlaying = false;
+        simSpeedMultiplier = 60;
+        updateClockDisplay();
+        document.getElementById("sim-time-input").value = "00:00";
+        document.getElementById("btn-play-pause").textContent = "Iniciar";
+        document.getElementById("btn-play-pause").className = "btn btn-secondary";
+        
+        // Clear local simulator progress and overrides
+        simStates = {};
+        
+        showToast("¡Simulación y base de datos reiniciadas con éxito!");
+        await fetchDevices();
+      } catch (err) {
+        console.error(err);
+        showToast("Error al reiniciar la simulación");
+      }
+    }
+
+    // Fetch campus locations
+    async function fetchCampusPoints() {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/campus-points`);
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        data.forEach(p => {
+          campusPoints[p.name] = { latitude: Number(p.latitude), longitude: Number(p.longitude) };
+        });
+      } catch (err) {
+        console.error("Error fetching campus points", err);
+      }
+    }
+
+    // Fetch devices
     async function fetchDevices() {
       try {
-        const res = await fetch(`${SIM_URL}/api/devices`);
-        if (!res.ok) throw new Error("Failed");
+        const res = await fetch(`${BACKEND_URL}/api/devices`);
+        if (!res.ok) throw new Error();
         devices = await res.json();
+        
+        // Initialize default overrides for newly discovered devices
+        devices.forEach(d => {
+          if (!simStates[d.id]) {
+            simStates[d.id] = {
+              transmissionActive: true,
+              speed: 5.0,
+              temperature: 24.0,
+              sensorsStatus: "normal",
+              cameraStatus: "off",
+              currentOrderId: "",
+              lat: Number(d.base_latitude || 3.345),
+              lon: Number(d.base_longitude || -76.53),
+              progress: 0,
+              lastTransmissionTime: 0
+            };
+          }
+        });
+
         render();
-      } catch {
-        try {
-          const res = await fetch(`${BACKEND_URL}/api/devices`);
-          devices = await res.json();
-          render();
-        } catch (e) {
-          document.getElementById("app").innerHTML = "Error cargando dispositivos.";
-        }
+      } catch (err) {
+        document.getElementById("app").innerHTML = '<div style="color: var(--destructive-text)">Error al conectar con la API del Backend.</div>';
       }
     }
 
+    // Update single field on device
     async function updateDevice(id, body) {
       try {
-        await fetch(`${SIM_URL}/api/devices/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        const res = await fetch(`${BACKEND_URL}/api/devices/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+        if (!res.ok) throw new Error();
         showToast("Dispositivo actualizado");
-        fetchDevices();
-      } catch {
-        try {
-          await fetch(`${BACKEND_URL}/api/devices/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-          showToast("Dispositivo actualizado");
-          fetchDevices();
-        } catch {
-          showToast("Error al actualizar dispositivo");
-        }
+        await fetchDevices();
+      } catch (err) {
+        showToast("Error al actualizar en base de datos");
       }
     }
 
-    async function sendTelemetry(device) {
+    // Teleport device immediately to a campus point
+    function teleportDevice(id, pointName) {
+      const point = campusPoints[pointName];
+      if (!point) return;
+      
+      simStates[id].lat = point.latitude;
+      simStates[id].lon = point.longitude;
+      simStates[id].progress = 0; // reset progress
+      
+      showToast(`Teletransportado a ${pointName}`);
+      
+      // If we teleported, let's trigger a telemetry post immediately if active
+      if (simStates[id].transmissionActive) {
+        sendTelemetryPing(devices.find(d => d.id === id));
+      }
+      render();
+    }
+
+    // Post telemetry to backend
+    async function sendTelemetryPing(device) {
+      const state = simStates[device.id];
+      if (!state) return;
+      
+      let missionDesc = "En base";
+      if (device.status === "in_mission" && device.currentRoute) {
+        const progPct = Math.round(state.progress);
+        if (progPct >= 100) {
+          missionDesc = `En destino: ${device.currentRoute.destination}`;
+        } else {
+          missionDesc = `En camino: ${device.currentRoute.origin} → ${device.currentRoute.destination} (${progPct}%)`;
+        }
+      } else if (device.status === "blocked") {
+        missionDesc = `Bloqueado: ${device.subStatus ? subStatusLabel(device.subStatus) : "Incidencia"}`;
+      }
+
       const body = {
         deviceId: device.id,
-        latitude: device.base_latitude || 3.345,
-        longitude: device.base_longitude || -76.53,
-        batteryLevel: device.batteryLevel,
-        speed: 5,
-        missionStatus: device.currentRoute ? `${device.currentRoute.origin} → ${device.currentRoute.destination}` : null,
-        signalLost: device.subStatus === "sin_senal",
+        latitude: state.lat,
+        longitude: state.lon,
+        batteryLevel: Number(device.batteryLevel),
+        speed: Number(state.speed),
+        missionStatus: missionDesc,
+        signalLost: !state.transmissionActive,
+        sensorsStatus: state.sensorsStatus,
+        temperature: Number(state.temperature),
+        cameraStatus: state.cameraStatus,
+        currentOrderId: state.currentOrderId || null
       };
+
       try {
-        await fetch(`${SIM_URL}/api/telemetry`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-        showToast("Telemetría enviada");
-      } catch {
-        try {
-          await fetch(`${BACKEND_URL}/api/telemetry`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-          showToast("Telemetría enviada");
-        } catch {
-          showToast("Error al enviar telemetría");
-        }
+        const res = await fetch(`${BACKEND_URL}/api/telemetry`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+        if (!res.ok) throw new Error();
+        state.lastTransmissionTime = Date.now();
+      } catch (err) {
+        console.error("Telemetry failed for", device.code, err);
       }
     }
 
-    async function simulateRoute(id, deviceType) {
-      if (deviceType === "drone") return;
-      try {
-        const res = await fetch(`${SIM_URL}/api/simulate-route/${id}`, { method: "POST" });
-        const data = await res.json();
-        showToast(`Ruta simulada: ${data.route.origin} → ${data.route.destination}`);
-        fetchDevices();
-      } catch {
-        try {
-          const devices = await fetch(`${BACKEND_URL}/api/devices`).then(r => r.json());
-          const device = devices.find(d => d.id === id);
-          if (!device) return;
+    // Core Clock and simulation loop (ticks every 1 second real-time)
+    setInterval(async () => {
+      if (!simPlaying) return;
 
-          const shuffled = [...CAMPUS_POINTS].sort(() => Math.random() - 0.5);
-          const origin = shuffled[0];
-          const destination = shuffled[1];
+      // 1. Advance virtual clock
+      simSeconds += simSpeedMultiplier;
+      updateClockDisplay();
 
-          await fetch(`${BACKEND_URL}/api/devices/${id}`, {
+      // 2. Iterate devices to simulate physical movement and battery drainage
+      let needsRerender = false;
+      
+      let completedMissions = [];
+
+      for (let d of devices) {
+        const state = simStates[d.id];
+        if (!state) continue;
+
+        // Simulate behavior during an active mission
+        if (d.status === "in_mission" && d.currentRoute) {
+          const originCP = campusPoints[d.currentRoute.origin];
+          const destCP = campusPoints[d.currentRoute.destination];
+
+          if (originCP && destCP) {
+            // A trip takes 10 virtual minutes (600 virtual seconds)
+            const journeyDurationSimSeconds = 600;
+
+            // Advance transit progress
+            if (state.progress < 100) {
+              const deltaProgress = (simSpeedMultiplier / journeyDurationSimSeconds) * 100;
+              state.progress = Math.min(100, state.progress + deltaProgress);
+
+              // Interpolate coordinates
+              state.lat = originCP.latitude + (destCP.latitude - originCP.latitude) * (state.progress / 100);
+              state.lon = originCP.longitude + (destCP.longitude - originCP.longitude) * (state.progress / 100);
+              needsRerender = true;
+            }
+
+            // Drain battery (10% over 10 virtual minutes, or 1% per virtual minute)
+            if (d.batteryLevel > 0) {
+              const deltaBattery = (simSpeedMultiplier / journeyDurationSimSeconds) * 10;
+              const newBat = Math.max(0, d.batteryLevel - deltaBattery);
+              if (Math.round(newBat) !== Math.round(d.batteryLevel)) {
+                d.batteryLevel = Math.round(newBat);
+                needsRerender = true;
+
+                // Sync battery change to database to prevent hammers
+                await fetch(`${BACKEND_URL}/api/devices/${d.id}`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ batteryLevel: d.batteryLevel })
+                });
+
+                // Auto block due to low battery (< 20%)
+                if (d.batteryLevel < 20 && d.status !== "blocked") {
+                  await fetch(`${BACKEND_URL}/api/devices/${d.id}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ status: "blocked", subStatus: "bateria_baja" })
+                  });
+                  showToast(`Bateria baja en ${d.code}. Bloqueando dispositivo.`);
+                  await fetchDevices();
+                  return;
+                }
+              }
+            }
+
+            // Detect mission completion
+            if (state.progress >= 100 && !state.completionProcessed) {
+              state.completionProcessed = true;
+              completedMissions.push({ deviceId: d.id, orderId: state.currentOrderId, device: d });
+            }
+          }
+        }
+      }
+
+      // Process completed missions after the loop
+      for (const mission of completedMissions) {
+        if (mission.orderId) {
+          await fetch(`${BACKEND_URL}/api/orders/${mission.orderId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ status: "in_mission", subStatus: null, currentRoute: { origin, destination } }),
+            body: JSON.stringify({ status: "completed" })
           });
-          showToast(`Ruta simulada: ${origin} → ${destination}`);
-          fetchDevices();
-        } catch {
-          showToast("Error al simular ruta");
+          showToast(`Orden ${mission.orderId.slice(0, 8)} completada. ${mission.device.code} disponible.`);
+        } else {
+          await fetch(`${BACKEND_URL}/api/devices/${mission.deviceId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: "available", subStatus: "en_base", currentRoute: null })
+          });
+          showToast(`${mission.device.code} ha llegado a destino y esta disponible.`);
         }
+        await fetchDevices();
       }
-    }
 
-    async function startRecording(id, location) {
-      await fetch(`${BACKEND_URL}/api/devices/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "in_mission", subStatus: null, currentRoute: { origin: location, destination: location } }),
+      if (needsRerender) {
+        render();
+      }
+    }, 1000);
+
+    // Telemetry transmission loop (every 3 seconds real-time)
+    setInterval(() => {
+      devices.forEach(d => {
+        const state = simStates[d.id];
+        if (state && state.transmissionActive) {
+          sendTelemetryPing(d);
+        }
       });
-      showToast(`Grabando en: ${location}`);
-      fetchDevices();
-    }
+    }, 3000);
 
+    // Render loop
     function render() {
       const grid = document.getElementById("app");
       if (!devices.length) {
-        grid.innerHTML = "No se encontraron dispositivos.";
+        grid.innerHTML = '<div class="loading-screen">No se encontraron dispositivos en la base de datos. Asegúrate de iniciar la base de datos.</div>';
         return;
       }
 
       grid.className = "grid";
-      grid.innerHTML = devices.map(d => `
-        <div class="card" data-id="${d.id}">
+      grid.innerHTML = devices.map(d => {
+        const state = simStates[d.id] || {};
+        const isRobot = d.type === "robot";
+        
+        let transitDesc = "En base";
+        let progressPct = 0;
+        if (d.status === "in_mission" && d.currentRoute) {
+          progressPct = Math.round(state.progress || 0);
+          if (progressPct >= 100) {
+            transitDesc = `En destino: ${d.currentRoute.destination}`;
+          } else {
+            transitDesc = `En camino: ${d.currentRoute.origin} → ${d.currentRoute.destination}`;
+          }
+        } else if (d.status === "blocked") {
+          transitDesc = `Dispositivo bloqueado (${d.subStatus ? subStatusLabel(d.subStatus) : "Incidencia"})`;
+        }
+
+        return `
+        <div class="card" id="card-${d.id}">
           <div class="card-header">
-            <div class="icon ${d.type}">${d.type === "robot" ? "RBT" : "DRN"}</div>
+            <div class="icon ${d.type}">${isRobot ? "RBT" : "DRN"}</div>
             <div class="info">
               <div class="code">${d.code}</div>
-              <div class="type">${d.type === "robot" ? "Robot terrestre" : "Dron"}</div>
+              <div class="type">${isRobot ? "Robot Terrestre" : "Dron Autónomo"}</div>
             </div>
-            <div style="margin-left:auto;text-align:right">
+            <div class="header-badges">
               <span class="status-badge ${d.status}">${statusLabel(d.status)}</span>
-              ${d.subStatus ? `<br><span class="status-badge sub" style="margin-top:4px">${subStatusLabel(d.subStatus)}</span>` : ""}
+              ${d.subStatus ? `<span class="status-badge sub">${subStatusLabel(d.subStatus)}</span>` : ""}
             </div>
           </div>
 
-          ${d.status === "in_mission" && d.currentRoute ? `
-            <div class="route-display">
-              ${d.type === "drone" ? "🎥 " : ""}<span>${d.currentRoute.origin}</span>${d.currentRoute.origin !== d.currentRoute.destination ? ` → <span>${d.currentRoute.destination}</span>` : ""}
+          <!-- Transmission switch -->
+          <div class="trans-box ${state.transmissionActive ? "active" : "inactive"}">
+            <span>${state.transmissionActive ? "📡 Transmitiendo Telemetría" : "🔌 Transmisión Pausada"}</span>
+            <label class="switch">
+              <input type="checkbox" ${state.transmissionActive ? "checked" : ""}
+                onchange="simStates['${d.id}'].transmissionActive = this.checked; render(); if(this.checked) sendTelemetryPing(devices.find(dev => dev.id === '${d.id}'));">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <!-- Route progress visualization -->
+          <div class="transit-panel">
+            <div class="transit-title">Estado de Tránsito</div>
+            <div class="transit-desc">${transitDesc} ${d.status === "in_mission" && progressPct < 100 ? `(${progressPct}%)` : ""}</div>
+            ${d.status === "in_mission" && progressPct < 100 ? `
+              <div class="transit-progress">
+                <div class="bar" style="width: ${progressPct}%"></div>
+              </div>
+            ` : ""}
+          </div>
+
+          <!-- GPS coordinates and teleport -->
+          <div class="control-row">
+            <div class="field">
+              <label>Latitud GPS</label>
+              <input type="number" step="0.0000001" value="${state.lat || ""}" 
+                ${d.status === "in_mission" && progressPct < 100 ? "readonly style='background:#f1f5f9;'" : ""}
+                onchange="simStates['${d.id}'].lat = Number(this.value)">
             </div>
-          ` : ""}
+            <div class="field">
+              <label>Longitud GPS</label>
+              <input type="number" step="0.0000001" value="${state.lon || ""}"
+                ${d.status === "in_mission" && progressPct < 100 ? "readonly style='background:#f1f5f9;'" : ""}
+                onchange="simStates['${d.id}'].lon = Number(this.value)">
+            </div>
+          </div>
 
           <div class="field">
-            <label>Batería</label>
+            <label>Teletransportar a ubicación</label>
+            <select onchange="if(this.value) teleportDevice('${d.id}', this.value); this.value='';">
+              <option value="">Seleccionar punto...</option>
+              ${Object.keys(campusPoints).map(p => `<option value="${p}">${p}</option>`).join("")}
+            </select>
+          </div>
+
+          <!-- Battery slider -->
+          <div class="field">
+            <label>Nivel de Batería</label>
             <div class="battery-row">
               <input type="range" min="0" max="100" value="${d.batteryLevel}"
+                oninput="this.nextElementSibling.textContent = this.value + '%'"
                 onchange="updateDevice('${d.id}', { batteryLevel: parseInt(this.value) })">
               <span>${d.batteryLevel}%</span>
             </div>
             <div class="battery-bar">
-              <div class="fill ${batteryColor(d.batteryLevel)}" style="width:${d.batteryLevel}%"></div>
+              <div class="fill ${batteryColor(d.batteryLevel)}" style="width: ${d.batteryLevel}%"></div>
+            </div>
+          </div>
+
+          <!-- Diagnostic state overrides -->
+          <div class="control-row">
+            <div class="field">
+              <label>Estado General</label>
+              <select onchange="updateDevice('${d.id}', { status: this.value, subStatus: this.value === 'blocked' ? 'mantenimiento' : (this.value === 'available' ? 'en_base' : null) })">
+                <option value="available" ${d.status === "available" ? "selected" : ""}>Disponible</option>
+                <option value="in_mission" ${d.status === "in_mission" ? "selected" : ""}>En Misión</option>
+                <option value="blocked" ${d.status === "blocked" ? "selected" : ""}>Bloqueado</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Sub-Estado</label>
+              <select onchange="updateDevice('${d.id}', { subStatus: this.value || null })">
+                <option value="" ${!d.subStatus ? "selected" : ""}>Ninguno</option>
+                <option value="en_base" ${d.subStatus === "en_base" ? "selected" : ""}>En base</option>
+                <option value="cargando" ${d.subStatus === "cargando" ? "selected" : ""}>Cargando</option>
+                <option value="bateria_baja" ${d.subStatus === "bateria_baja" ? "selected" : ""}>Batería baja</option>
+                <option value="sin_senal" ${d.subStatus === "sin_senal" ? "selected" : ""}>Sin señal</option>
+                <option value="mantenimiento" ${d.subStatus === "mantenimiento" ? "selected" : ""}>Mantenimiento</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Maintenance limits -->
+          <div class="control-row">
+            <div class="field">
+              <label>${isRobot ? "Kilómetros Acumulados" : "Horas de Vuelo"}</label>
+              <input type="number" step="0.1" value="${isRobot ? d.accumulatedKm : d.flightHours}"
+                onchange="updateDevice('${d.id}', ${isRobot ? `{ accumulatedKm: parseFloat(this.value) }` : `{ flightHours: parseFloat(this.value) }`})">
+            </div>
+            <div class="field">
+              <label>Último Mantenimiento</label>
+              <input type="date" value="${d.lastMaintenanceDate ? new Date(d.lastMaintenanceDate).toISOString().split('T')[0] : ""}"
+                onchange="updateDevice('${d.id}', { lastMaintenanceDate: this.value })">
+            </div>
+          </div>
+
+          <!-- Extended Telemetry fields -->
+          <div class="control-row">
+            <div class="field">
+              <label>Velocidad (m/s)</label>
+              <input type="number" step="0.1" value="${state.speed || ""}"
+                onchange="simStates['${d.id}'].speed = parseFloat(this.value)">
+            </div>
+            <div class="field">
+              <label>Temperatura (°C)</label>
+              <input type="number" step="0.1" value="${state.temperature || ""}"
+                onchange="simStates['${d.id}'].temperature = parseFloat(this.value)">
+            </div>
+          </div>
+
+          <div class="control-row">
+            <div class="field">
+              <label>Estado de Sensores</label>
+              <select onchange="simStates['${d.id}'].sensorsStatus = this.value">
+                <option value="normal" ${state.sensorsStatus === "normal" ? "selected" : ""}>Normal</option>
+                <option value="warning" ${state.sensorsStatus === "warning" ? "selected" : ""}>Warning</option>
+                <option value="error" ${state.sensorsStatus === "error" ? "selected" : ""}>Error</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Estado de Cámara</label>
+              <select onchange="simStates['${d.id}'].cameraStatus = this.value">
+                <option value="off" ${state.cameraStatus === "off" ? "selected" : ""}>Apagada (Off)</option>
+                <option value="streaming" ${state.cameraStatus === "streaming" ? "selected" : ""}>Streaming</option>
+                <option value="recording" ${state.cameraStatus === "recording" ? "selected" : ""}>Grabando</option>
+              </select>
             </div>
           </div>
 
           <div class="field">
-            <label>Estado</label>
-            <select onchange="updateDevice('${d.id}', { status: this.value, subStatus: this.value === 'blocked' ? 'mantenimiento' : (this.value === 'available' ? 'en_base' : null) })">
-              <option value="available" ${d.status === "available" ? "selected" : ""}>Disponible</option>
-              <option value="in_mission" ${d.status === "in_mission" ? "selected" : ""}>En servicio</option>
-              <option value="blocked" ${d.status === "blocked" ? "selected" : ""}>Bloqueado</option>
-            </select>
+            <label>Orden Asignada Actualmente (ID)</label>
+            <input type="text" placeholder="UUID de la Orden o vacío" value="${state.currentOrderId || ""}"
+              onchange="simStates['${d.id}'].currentOrderId = this.value">
           </div>
-
-          <div class="field sub-status-group ${d.status === "blocked" ? "visible" : ""}">
-            <label>Sub-estado (solo cuando está bloqueado)</label>
-            <select onchange="updateDevice('${d.id}', { subStatus: this.value })">
-              <option value="bateria_baja" ${d.subStatus === "bateria_baja" ? "selected" : ""}>Batería baja</option>
-              <option value="sin_senal" ${d.subStatus === "sin_senal" ? "selected" : ""}>Sin señal</option>
-              <option value="mantenimiento" ${d.subStatus === "mantenimiento" ? "selected" : ""}>Mantenimiento</option>
-              <option value="cargando" ${d.subStatus === "cargando" ? "selected" : ""}>En base · Cargando</option>
-            </select>
-          </div>
-
-          ${d.type === "drone" ? `
-            <div class="field recording-group ${d.status === "in_mission" ? "visible" : ""}">
-              <label>Lugar de grabación</label>
-              <select onchange="if(this.value) startRecording('${d.id}', this.value)">
-                <option value="">Seleccionar lugar...</option>
-                ${CAMPUS_POINTS.map(p => `<option value="${p}">${p}</option>`).join("")}
-              </select>
-            </div>
-          ` : ""}
-
-          <div class="buttons">
-            ${d.type === "robot" ? `
-              <button class="btn btn-primary" onclick="simulateRoute('${d.id}', '${d.type}')">Simular ruta</button>
-            ` : ""}
-            <button class="btn btn-secondary" onclick="sendTelemetry(${JSON.stringify(d).replace(/"/g, "&quot;")})">Enviar telemetría</button>
-          </div>
-
-          ${d.type === "robot" ? `
-            <div class="field" style="margin-top:12px">
-              <label>Km acumulados</label>
-              <input type="number" value="${d.accumulatedKm}" step="0.1" min="0"
-                onchange="updateDevice('${d.id}', { accumulatedKm: parseFloat(this.value) })">
-            </div>
-          ` : `
-            <div class="field" style="margin-top:12px">
-              <label>Horas de vuelo</label>
-              <input type="number" value="${d.flightHours}" step="0.1" min="0"
-                onchange="updateDevice('${d.id}', { flightHours: parseFloat(this.value) })">
-            </div>
-          `}
         </div>
-      `).join("");
-
-      document.querySelectorAll("select").forEach(sel => {
-        sel.addEventListener("change", () => {
-          const card = sel.closest(".card");
-          const subField = card.querySelector(".sub-status-group");
-          const recField = card.querySelector(".recording-group");
-          const statusSelect = card.querySelector("select:first-of-type + select");
-          const statusVal = card.querySelector("select") ? card.querySelector("select").value : "";
-          const selects = card.querySelectorAll("select");
-          const status = selects[0] ? selects[0].value : "";
-          if (subField) {
-            subField.classList.toggle("visible", status === "blocked");
-          }
-          if (recField) {
-            recField.classList.toggle("visible", status === "in_mission");
-          }
-        });
-      });
+      `;
+      }).join("");
     }
 
-    fetchDevices();
-    setInterval(fetchDevices, 3000);
+    // Start everything
+    async function start() {
+      await fetchCampusPoints();
+      await fetchDevices();
+      setInterval(fetchDevices, 5000); // sync database changes periodically
+    }
+
+    start();
   </script>
 </body>
 </html>

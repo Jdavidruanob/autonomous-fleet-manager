@@ -17,7 +17,7 @@ The 10 implemented requirements are:
 
 | ID | Requirement |
 |----|-------------|
-| RF-01 | Autenticación, Control de Acceso y Reportes |
+| RF-01 | Autenticación, Control de Acceso por rol |
 | RF-04 | Gestión de Puntos Predefinidos de Encuentro |
 | RF-05 | Creación de Orden de Servicio tipo Entrega |
 | RF-06 | Gestión de Franja Horaria para Entrega |

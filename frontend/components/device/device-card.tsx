@@ -37,7 +37,7 @@ export function DeviceCard({ device }: Props) {
       </div>
 
       <div className="p-3 flex flex-col gap-2 flex-1">
-        {showRoute && (
+        {showRoute && device.currentRoute && (
           <div className="flex items-center gap-1.5 text-sm bg-secondary/50 rounded-md px-3 py-2">
             {device.type === "drone" ? (
               <Video className="h-3.5 w-3.5 text-muted-foreground shrink-0" />

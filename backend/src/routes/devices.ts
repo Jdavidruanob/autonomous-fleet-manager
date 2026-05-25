@@ -79,7 +79,7 @@ router.get("/:id", async (req, res) => {
 router.patch("/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, subStatus, batteryLevel, accumulatedKm, flightHours, currentRoute } = req.body;
+    const { status, subStatus, batteryLevel, accumulatedKm, flightHours, currentRoute, lastMaintenanceDate } = req.body;
 
     const existing = await queryOne<DeviceRow>(
       "SELECT * FROM devices WHERE id = $1",
@@ -135,7 +135,31 @@ router.patch("/:id", async (req, res) => {
       );
     }
 
-    if (batteryLevel !== undefined && batteryLevel < 20 && status === "blocked") {
+    if (
+      (accumulatedKm !== undefined && accumulatedKm > 300) ||
+      (flightHours !== undefined && flightHours > 50)
+    ) {
+      await query(
+        `UPDATE devices SET status = 'blocked', sub_status = 'mantenimiento' WHERE id = $1`,
+        [id]
+      );
+      const existingAlert = await queryOne(
+        `SELECT id FROM alerts WHERE device_id = $1 AND type = 'maintenance_required' AND created_at > NOW() - INTERVAL '5 minutes'`,
+        [id]
+      );
+      if (!existingAlert) {
+        await query(
+          `INSERT INTO alerts (device_id, type, message) VALUES ($1, 'maintenance_required', $2)`,
+          [id, `Device requires maintenance: km=${accumulatedKm}, flightHours=${flightHours}`]
+        );
+      }
+    }
+
+    if (batteryLevel !== undefined && batteryLevel < 20) {
+      await query(
+        `UPDATE devices SET status = 'blocked', sub_status = 'bateria_baja' WHERE id = $1`,
+        [id]
+      );
       const existingAlert = await queryOne(
         `SELECT id FROM alerts WHERE device_id = $1 AND type = 'low_battery' AND created_at > NOW() - INTERVAL '5 minutes'`,
         [id]
@@ -148,9 +172,133 @@ router.patch("/:id", async (req, res) => {
       }
     }
 
+    if (lastMaintenanceDate !== undefined) {
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+      const mDate = new Date(lastMaintenanceDate);
+      if (mDate < oneMonthAgo) {
+        await query(
+          `UPDATE devices SET status = 'blocked', sub_status = 'mantenimiento' WHERE id = $1`,
+          [id]
+        );
+        const existingAlert = await queryOne(
+          `SELECT id FROM alerts WHERE device_id = $1 AND type = 'maintenance_required' AND created_at > NOW() - INTERVAL '5 minutes'`,
+          [id]
+        );
+        if (!existingAlert) {
+          await query(
+            `INSERT INTO alerts (device_id, type, message) VALUES ($1, 'maintenance_required', $2)`,
+            [id, `Device maintenance overdue since ${lastMaintenanceDate}`]
+          );
+        }
+      }
+    }
+
+    await query(
+      `UPDATE devices
+       SET sub_status = 'sin_senal', status = 'blocked'
+       WHERE id = $1
+         AND status != 'blocked'
+         AND sub_status != 'mantenimiento'
+         AND sub_status != 'bateria_baja'
+         AND sub_status != 'cargando'
+         AND (SELECT COALESCE(MAX(t.recorded_at), '1970-01-01'::timestamptz)
+              FROM telemetry t WHERE t.device_id = $1) < NOW() - INTERVAL '30 seconds'`,
+      [id]
+    );
+
     res.json({ success: true });
   } catch (err) {
     console.error("PATCH /api/devices/:id error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/:id/telemetry", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const row = await queryOne(
+      `SELECT * FROM telemetry WHERE device_id = $1 ORDER BY recorded_at DESC LIMIT 1`,
+      [id]
+    );
+    res.json(row || null);
+  } catch (err) {
+    console.error("GET /api/devices/:id/telemetry error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/:id/force-return", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const device = await queryOne<DeviceRow>("SELECT * FROM devices WHERE id = $1", [id]);
+    if (!device) return res.status(404).json({ error: "Device not found" });
+
+    const activeOrder = await queryOne<{ id: string }>(
+      `SELECT id FROM orders WHERE device_id = $1 AND status IN ('pending', 'in_progress') ORDER BY created_at DESC LIMIT 1`,
+      [id]
+    );
+
+    if (activeOrder) {
+      await query(
+        `UPDATE orders SET status = 'cancelled', cancelled_at = NOW(), cancellation_reason = 'Retorno forzado a base por operador' WHERE id = $1`,
+        [activeOrder.id]
+      );
+      await query(
+        `INSERT INTO event_logs (order_id, event_type, description) VALUES ($1, 'cancelled', 'Retorno forzado a base. Paquete no entregado.')`,
+        [activeOrder.id]
+      );
+      await query(
+        `INSERT INTO alerts (device_id, order_id, type, message) VALUES ($1, $2, 'package_undelivered', 'Dispositivo forzado a regresar a base')`,
+        [id, activeOrder.id]
+      );
+    }
+
+    await query(
+      `UPDATE devices SET status = 'available', sub_status = 'en_base', current_route_origin = null, current_route_destination = null WHERE id = $1`,
+      [id]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("POST /api/devices/:id/force-return error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/:id/cancel-order", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+
+    const device = await queryOne<DeviceRow>("SELECT * FROM devices WHERE id = $1", [id]);
+    if (!device) return res.status(404).json({ error: "Device not found" });
+
+    const activeOrder = await queryOne<{ id: string }>(
+      `SELECT id FROM orders WHERE device_id = $1 AND status IN ('pending', 'in_progress') ORDER BY created_at DESC LIMIT 1`,
+      [id]
+    );
+
+    if (activeOrder) {
+      await query(
+        `UPDATE orders SET status = 'cancelled', cancelled_at = NOW(), cancellation_reason = $2 WHERE id = $1`,
+        [activeOrder.id, reason || "Cancelado por el operador"]
+      );
+      await query(
+        `INSERT INTO event_logs (order_id, event_type, description) VALUES ($1, 'cancelled', $2)`,
+        [activeOrder.id, `Orden cancelada por el operador. Razón: ${reason || "Cancelado por el operador"}`]
+      );
+    }
+
+    await query(
+      `UPDATE devices SET status = 'available', sub_status = 'en_base', current_route_origin = null, current_route_destination = null WHERE id = $1`,
+      [id]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("POST /api/devices/:id/cancel-order error:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });

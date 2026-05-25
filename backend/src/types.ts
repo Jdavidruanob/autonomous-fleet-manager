@@ -39,3 +39,17 @@ export interface DashboardKpis {
   ordersCompletedToday: number;
   ordersCancelledToday: number;
 }
+
+export interface TelemetryPayload {
+  deviceId: string;
+  latitude: number;
+  longitude: number;
+  batteryLevel: number;
+  speed?: number;
+  missionStatus?: string;
+  signalLost?: boolean;
+  sensorsStatus?: string;
+  temperature?: number;
+  cameraStatus?: string;
+  currentOrderId?: string;
+}

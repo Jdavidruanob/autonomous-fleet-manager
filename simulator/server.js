@@ -51,48 +51,91 @@ app.post("/api/telemetry", async (req, res) => {
   }
 });
 
-app.post("/api/simulate-route/:id", async (req, res) => {
+app.post("/api/reset-simulation", async (_req, res) => {
+  try {
+    const devices = await fetch(`${BACKEND_URL}/api/devices`).then(r => r.json());
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    const promises = devices.map((d) =>
+      fetch(`${BACKEND_URL}/api/devices/${d.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "available",
+          subStatus: "en_base",
+          batteryLevel: 100.00,
+          accumulatedKm: 0,
+          flightHours: 0,
+          currentRoute: null,
+          lastMaintenanceDate: todayStr,
+        }),
+      })
+    );
+
+    await Promise.all(promises);
+
+    const orders = await fetch(`${BACKEND_URL}/api/orders?status=in_progress`).then(r => r.json());
+    for (const order of orders) {
+      await fetch(`${BACKEND_URL}/api/orders/${order.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "cancelled", cancellationReason: "Simulacion reiniciada" }),
+      });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Reset simulation error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/orders", async (req, res) => {
+  try {
+    const params = new URLSearchParams();
+    if (req.query.status) params.set("status", req.query.status);
+    const url = `${BACKEND_URL}/api/orders${params.size ? "?" + params.toString() : ""}`;
+    const result = await fetch(url).then(r => r.json());
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch("/api/orders/:id", async (req, res) => {
   try {
     const { id } = req.params;
-
-    const devices = await fetch(`${BACKEND_URL}/api/devices`).then(r => r.json());
-    const device = devices.find((d) => d.id === id);
-    if (!device) return res.status(404).json({ error: "Device not found" });
-
-    const campusPoints = [
-      "Edificio Almendros", "Biblioteca General", "Cafeteria Central",
-      "Edificio Cedros", "Auditorio Mayor", "Edificio El Saman",
-      "Cancha Multiple", "Porteria Principal"
-    ];
-    const shuffled = campusPoints.sort(() => Math.random() - 0.5);
-    const origin = shuffled[0];
-    const destination = shuffled[1];
-
-    await fetch(`${BACKEND_URL}/api/devices/${id}`, {
+    const result = await fetch(`${BACKEND_URL}/api/orders/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        status: "in_mission",
-        subStatus: null,
-        currentRoute: { origin, destination },
-      }),
-    });
+      body: JSON.stringify(req.body),
+    }).then(r => r.json());
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
-    await fetch(`${BACKEND_URL}/api/telemetry`, {
+app.post("/api/orders", async (req, res) => {
+  try {
+    const result = await fetch(`${BACKEND_URL}/api/orders`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        deviceId: id,
-        latitude: device.base_latitude || 3.345,
-        longitude: device.base_longitude || -76.53,
-        batteryLevel: device.batteryLevel,
-        speed: 5,
-        missionStatus: `${origin} → ${destination}`,
-        signalLost: false,
-      }),
-    });
+      body: JSON.stringify(req.body),
+    }).then(r => r.json());
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
-    res.json({ success: true, route: { origin, destination } });
+app.get("/api/alerts", async (req, res) => {
+  try {
+    const params = new URLSearchParams();
+    if (req.query.deviceId) params.set("deviceId", req.query.deviceId);
+    const url = `${BACKEND_URL}/api/alerts${params.size ? "?" + params.toString() : ""}`;
+    const result = await fetch(url).then(r => r.json());
+    res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

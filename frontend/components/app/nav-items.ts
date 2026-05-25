@@ -1,7 +1,6 @@
 import {
   BarChart3,
   ClipboardList,
-  Cpu,
   LayoutDashboard,
   PlusCircle,
   Settings,
@@ -19,10 +18,9 @@ export interface NavItem {
 
 export const navItems: NavItem[] = [
   { href: "/", label: "Panel", Icon: LayoutDashboard },
-  { href: "/orders/new", label: "Crear orden", Icon: PlusCircle, emphasize: true },
-  { href: "/orders", label: "Bitacora", Icon: ClipboardList },
-  { href: "/devices", label: "Dispositivos", Icon: Cpu },
-  { href: "/reports", label: "Reportes", Icon: BarChart3 },
+  { href: "/orders/new", label: "Crear", Icon: PlusCircle, emphasize: true },
+  { href: "/orders", label: "Bitácora", Icon: ClipboardList },
+  { href: "/reports", label: "Reportes", Icon: BarChart3, adminOnly: true },
   { href: "/users", label: "Usuarios", Icon: Users, adminOnly: true },
-  { href: "/settings", label: "Configuracion", Icon: Settings }
+  { href: "/settings", label: "Config", Icon: Settings },
 ];

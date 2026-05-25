@@ -2,18 +2,61 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
 import { Bell, ChevronDown, LogOut, Search, Settings, User } from "lucide-react";
 import { useAppState } from "@/components/app/app-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { alertPreviews } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+
+interface Alert {
+  id: string;
+  deviceId: string;
+  deviceCode: string;
+  type: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+function formatAgo(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "hace un momento";
+  if (mins < 60) return `hace ${mins} min`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `hace ${hrs}h`;
+  return `hace ${Math.floor(hrs / 24)}d`;
+}
 
 export function Header() {
   const router = useRouter();
   const { role, setRole, userName, userEmail } = useAppState();
-  const unread = alertPreviews.filter((alert) => alert.level !== "info").length;
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [loadingAlerts, setLoadingAlerts] = useState(false);
+
+  const fetchAlerts = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/alerts?limit=20`);
+      if (res.ok) {
+        const data = await res.json();
+        setAlerts(data);
+      }
+    } catch { /* ignore */ } finally {
+      setLoadingAlerts(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAlerts();
+    const interval = setInterval(fetchAlerts, 15000);
+    return () => clearInterval(interval);
+  }, [fetchAlerts]);
+
+  const unread = alerts.filter((a) => !a.isRead).length;
   const initials = userName
     .split(" ")
     .map((part) => part[0])
@@ -76,25 +119,27 @@ export function Header() {
             <div className="invisible absolute right-0 top-10 z-50 w-96 rounded-md border bg-popover text-popover-foreground opacity-0 shadow-lg transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
               <div className="flex items-center justify-between border-b p-3">
                 <div className="text-sm font-semibold">Alertas y notificaciones</div>
-                <Badge variant="secondary" className="text-xs">
-                  {alertPreviews.length}
-                </Badge>
+                <Badge variant="secondary" className="text-xs">{alerts.length}</Badge>
               </div>
               <div className="max-h-96 overflow-auto divide-y">
-                {alertPreviews.map((alert) => {
-                  const dot =
-                    alert.level === "critical" ? "bg-destructive" : alert.level === "warning" ? "bg-warning" : "bg-info";
-
-                  return (
-                    <button key={alert.id} className="flex w-full gap-3 p-3 text-left transition-colors hover:bg-muted/60">
-                      <span className={cn("mt-1.5 h-2 w-2 shrink-0 rounded-full", dot)} />
-                      <span className="min-w-0">
-                        <span className="block text-sm leading-snug">{alert.message}</span>
-                        <span className="mt-0.5 block text-xs text-muted-foreground">{alert.timeLabel}</span>
-                      </span>
-                    </button>
-                  );
-                })}
+                {alerts.length === 0 ? (
+                  <div className="p-4 text-center text-sm text-muted-foreground">Sin alertas</div>
+                ) : (
+                  alerts.map((alert) => {
+                    const dot = alert.isRead ? "bg-muted" : "bg-destructive";
+                    return (
+                      <div key={alert.id} className="flex w-full gap-3 p-3 text-left transition-colors hover:bg-muted/60">
+                        <span className={cn("mt-1.5 h-2 w-2 shrink-0 rounded-full", dot)} />
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm leading-snug">{alert.message}</span>
+                          <span className="mt-0.5 block text-xs text-muted-foreground">
+                            {alert.deviceCode ? `${alert.deviceCode} · ` : ""}{formatAgo(alert.createdAt)}
+                          </span>
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
           </div>
@@ -116,11 +161,11 @@ export function Header() {
                 <User className="h-4 w-4" /> Perfil
               </button>
               <button className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent" onClick={() => router.push("/settings")}>
-                <Settings className="h-4 w-4" /> Configuracion
+                <Settings className="h-4 w-4" /> Configuración
               </button>
               <div className="-mx-1 my-1 h-px bg-border" />
-              <button className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent">
-                <LogOut className="h-4 w-4" /> Cerrar sesion
+              <button className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent" onClick={() => router.push("/login")}>
+                <LogOut className="h-4 w-4" /> Cerrar sesión
               </button>
             </div>
           </div>

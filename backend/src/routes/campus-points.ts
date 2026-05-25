@@ -5,8 +5,8 @@ const router = Router();
 
 router.get("/", async (_req, res) => {
   try {
-    const rows = await query<{ id: string; name: string }>(
-      `SELECT id, name FROM campus_points WHERE is_active = true ORDER BY name`
+    const rows = await query<{ id: string; name: string; latitude: number; longitude: number }>(
+      `SELECT id, name, latitude, longitude FROM campus_points WHERE is_active = true ORDER BY name`
     );
     res.json(rows);
   } catch (err) {

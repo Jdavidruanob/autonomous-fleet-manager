@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { AppShell } from "@/components/app/app-shell";
 import "./globals.css";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: "Fleet Control PUJ",
@@ -15,7 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AppShell>{children}</AppShell>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

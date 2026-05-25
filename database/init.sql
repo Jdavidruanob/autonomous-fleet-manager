@@ -55,7 +55,7 @@ CREATE TABLE devices (
   battery_level DECIMAL(5,2) NOT NULL CHECK (battery_level >= 0 AND battery_level <= 100),
   accumulated_km DECIMAL(8,2) NOT NULL DEFAULT 0 CHECK (accumulated_km >= 0),
   flight_hours DECIMAL(8,2) NOT NULL DEFAULT 0 CHECK (flight_hours >= 0),
-  last_maintenance_date DATE,
+  last_maintenance_date DATE DEFAULT CURRENT_DATE,
   base_latitude DECIMAL(10,7),
   base_longitude DECIMAL(10,7),
   sub_status VARCHAR(32),
@@ -108,6 +108,10 @@ CREATE TABLE telemetry (
   speed DECIMAL(6,2),
   mission_status VARCHAR,
   signal_lost BOOLEAN NOT NULL DEFAULT FALSE,
+  sensors_status VARCHAR(32) DEFAULT 'normal',
+  temperature DECIMAL(5,2),
+  camera_status VARCHAR(32) DEFAULT 'off',
+  current_order_id UUID,
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -190,11 +194,11 @@ VALUES
   ('Cancha Multiple', 'Zona abierta para grabaciones y monitoreo.', 3.3438000, -76.5288000),
   ('Porteria Principal', 'Base operativa de referencia.', 3.3465000, -76.5310000);
 
-INSERT INTO devices (name, code, type, status, battery_level, accumulated_km, flight_hours, base_latitude, base_longitude)
+INSERT INTO devices (name, code, type, status, battery_level, accumulated_km, flight_hours, sub_status, last_maintenance_date, base_latitude, base_longitude)
 VALUES
-  ('Robot Cargo RBT-01', 'RBT-01', 'robot', 'available', 85.00, 42.5, 0, 3.3455000, -76.5305000),
-  ('Robot Mensajero RBT-02', 'RBT-02', 'robot', 'in_mission', 62.00, 128.3, 0, 3.3448000, -76.5298000),
-  ('Robot Repartidor RBT-03', 'RBT-03', 'robot', 'blocked', 15.00, 312.0, 0, 3.3452000, -76.5292000),
-  ('Dron Aguila DRN-01', 'DRN-01', 'drone', 'available', 91.00, 0, 12.5, 3.3460000, -76.5295000),
-  ('Dron Halcon DRN-02', 'DRN-02', 'drone', 'in_mission', 38.00, 0, 28.1, 3.3442000, -76.5302000),
-  ('Dron Vigilante DRN-03', 'DRN-03', 'drone', 'blocked', 18.00, 0, 45.2, 3.3438000, -76.5288000);
+  ('Robot Cargo RBT-01', 'RBT-01', 'robot', 'available', 100.00, 0, 0, 'en_base', CURRENT_DATE, 3.3455000, -76.5305000),
+  ('Robot Mensajero RBT-02', 'RBT-02', 'robot', 'available', 100.00, 0, 0, 'en_base', CURRENT_DATE, 3.3448000, -76.5298000),
+  ('Robot Repartidor RBT-03', 'RBT-03', 'robot', 'available', 100.00, 0, 0, 'en_base', CURRENT_DATE, 3.3452000, -76.5292000),
+  ('Dron Aguila DRN-01', 'DRN-01', 'drone', 'available', 100.00, 0, 0, 'en_base', CURRENT_DATE, 3.3460000, -76.5295000),
+  ('Dron Halcon DRN-02', 'DRN-02', 'drone', 'available', 100.00, 0, 0, 'en_base', CURRENT_DATE, 3.3442000, -76.5302000),
+  ('Dron Vigilante DRN-03', 'DRN-03', 'drone', 'available', 100.00, 0, 0, 'en_base', CURRENT_DATE, 3.3438000, -76.5288000);
