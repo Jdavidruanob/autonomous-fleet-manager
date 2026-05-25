@@ -344,7 +344,7 @@ export default function DeviceDetailPage() {
         </div>
 
         <div className="hidden sm:flex flex-col items-end gap-0.5">
-          <DeviceStatusBadge status={device.status} subStatus={device.subStatus} />
+          <DeviceStatusBadge status={device.status} />
           <DeviceSubStatusLabel subStatus={device.subStatus} />
         </div>
 
@@ -415,7 +415,7 @@ export default function DeviceDetailPage() {
             <div className="p-4 space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Estado</span>
-                <DeviceStatusBadge status={device.status} subStatus={device.subStatus} />
+                <DeviceStatusBadge status={device.status} />
               </div>
               {device.subStatus && (
                 <div className="flex items-center justify-between">

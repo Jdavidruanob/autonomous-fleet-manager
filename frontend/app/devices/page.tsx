@@ -110,7 +110,6 @@ export default function DevicesPage() {
                   <div className="flex flex-col items-end gap-0.5">
                     <DeviceStatusBadge
                       status={device.status}
-                      subStatus={device.subStatus}
                     />
                     <DeviceSubStatusLabel subStatus={device.subStatus} />
                   </div>

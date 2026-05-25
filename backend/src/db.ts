@@ -10,6 +10,23 @@ const pool = new Pool({
 
 let useMock = false;
 
+interface MockDevice {
+  id: string;
+  name: string;
+  code: string;
+  type: "robot" | "drone";
+  status: "available" | "in_mission" | "blocked" | "maintenance";
+  battery_level: number;
+  accumulated_km: number;
+  flight_hours: number;
+  last_maintenance_date: string | null;
+  base_latitude: number;
+  base_longitude: number;
+  sub_status: string | null;
+  current_route_origin: string | null;
+  current_route_destination: string | null;
+}
+
 // Seed data for local in-memory fallback
 const mockCampusPoints = [
   { id: "c1", name: "Edificio Almendros", description: "Punto de encuentro principal para entregas internas.", latitude: 3.3455000, longitude: -76.5305000, is_active: true },
@@ -22,7 +39,7 @@ const mockCampusPoints = [
   { id: "c8", name: "Porteria Principal", description: "Base operativa de referencia.", latitude: 3.3465000, longitude: -76.5310000, is_active: true },
 ];
 
-const mockDevices = [
+const mockDevices: MockDevice[] = [
   { id: "d1", name: "Robot Cargo RBT-01", code: "RBT-01", type: "robot", status: "available", battery_level: 85.00, accumulated_km: 42.5, flight_hours: 0, last_maintenance_date: null, base_latitude: 3.3455000, base_longitude: -76.5305000, sub_status: "en_base", current_route_origin: null, current_route_destination: null },
   { id: "d2", name: "Robot Mensajero RBT-02", code: "RBT-02", type: "robot", status: "in_mission", battery_level: 62.00, accumulated_km: 128.3, flight_hours: 0, last_maintenance_date: null, base_latitude: 3.3448000, base_longitude: -76.5298000, sub_status: null, current_route_origin: "Edificio Almendros", current_route_destination: "Biblioteca General" },
   { id: "d3", name: "Robot Repartidor RBT-03", code: "RBT-03", type: "robot", status: "blocked", battery_level: 15.00, accumulated_km: 312.0, flight_hours: 0, last_maintenance_date: null, base_latitude: 3.3452000, base_longitude: -76.5292000, sub_status: "bateria_baja", current_route_origin: null, current_route_destination: null },
