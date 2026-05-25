@@ -16,7 +16,7 @@ const typeLabels = { robot: "Robot terrestre", drone: "Dron" };
 export function DeviceCard({ device }: Props) {
   const router = useRouter();
 
-  const showRoute = device.status === "in_mission" && device.currentRoute;
+  const currentRoute = device.status === "in_mission" ? device.currentRoute : null;
 
   return (
     <div className="bg-card rounded-lg border overflow-hidden flex flex-col">
@@ -37,16 +37,16 @@ export function DeviceCard({ device }: Props) {
       </div>
 
       <div className="p-3 flex flex-col gap-2 flex-1">
-        {showRoute && (
+        {currentRoute && (
           <div className="flex items-center gap-1.5 text-sm bg-secondary/50 rounded-md px-3 py-2">
             {device.type === "drone" ? (
               <Video className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
             ) : (
               <ArrowRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
             )}
-            <span className="font-medium text-foreground">{device.currentRoute.origin}</span>
+            <span className="font-medium text-foreground">{currentRoute.origin}</span>
             <ArrowRight className="h-3 w-3 text-muted-foreground shrink-0" />
-            <span className="font-medium text-foreground">{device.currentRoute.destination}</span>
+            <span className="font-medium text-foreground">{currentRoute.destination}</span>
           </div>
         )}
 
