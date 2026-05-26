@@ -1,23 +1,28 @@
+import http from "http";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import bcrypt from "bcryptjs";
 
 dotenv.config();
 
+import { initSocket } from "./socket";
 import devicesRouter from "./routes/devices";
 import dashboardRouter from "./routes/dashboard";
 import telemetryRouter from "./routes/telemetry";
 import campusPointsRouter from "./routes/campus-points";
 import ordersRouter from "./routes/orders";
 import alertsRouter from "./routes/alerts";
-import { query } from "./db";
+import authRouter from "./routes/auth";
+import { query, queryOne } from "./db";
 
 const app = express();
 const port = process.env.PORT ?? 4000;
 
-app.use(cors());
+app.use(cors({ origin: "*", credentials: true }));
 app.use(express.json());
 
+app.use("/api/auth", authRouter);
 app.use("/api/devices", devicesRouter);
 app.use("/api/dashboard/kpis", dashboardRouter);
 app.use("/api/telemetry", telemetryRouter);
@@ -29,28 +34,50 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-async function ensureDemoUser() {
-  try {
-    await query(`
-      INSERT INTO users (id, email, password_hash, full_name, role)
-      VALUES (
-        '00000000-0000-0000-0000-000000000000',
-        'm.ramirez@javerianacali.edu.co',
-        'demo_hash_not_for_auth',
-        'Maria Ramirez',
-        'administrator'
-      )
-      ON CONFLICT (id) DO NOTHING
-    `);
-  } catch (err) {
-    console.error("ensureDemoUser error:", err);
+const httpServer = http.createServer(app);
+const io = initSocket(httpServer);
+
+async function ensureDemoUsers() {
+  const demoUsers = [
+    {
+      email: "admin@javerianacali.edu.co",
+      fullName: "Admin Fleet Control",
+      role: "administrator",
+      password: "Admin1234",
+    },
+    {
+      email: "operador@javerianacali.edu.co",
+      fullName: "Operador Fleet Control",
+      role: "operator",
+      password: "Operador1234",
+    },
+  ];
+
+  for (const u of demoUsers) {
+    try {
+      const existing = await queryOne<any>(
+        "SELECT id FROM users WHERE email = $1",
+        [u.email]
+      );
+      if (!existing) {
+        const hash = await bcrypt.hash(u.password, 10);
+        await query(
+          `INSERT INTO users (email, password_hash, full_name, role)
+           VALUES ($1, $2, $3, $4)`,
+          [u.email, hash, u.fullName, u.role]
+        );
+        console.log(`Demo user created: ${u.email}`);
+      }
+    } catch (err) {
+      console.error(`ensureDemoUsers error for ${u.email}:`, err);
+    }
   }
 }
 
-// Periodic signal loss check (RF-21)
+// Periodic signal loss check (RF-21) — emits alert:new via Socket.io
 setInterval(async () => {
   try {
-    await query(`
+    const updated = await query(`
       UPDATE devices
       SET sub_status = 'sin_senal', status = 'blocked'
       WHERE status != 'blocked'
@@ -62,9 +89,14 @@ setInterval(async () => {
           FROM telemetry
           WHERE telemetry.device_id = devices.id
         ) < NOW() - INTERVAL '30 seconds'
+      RETURNING id, code
     `);
 
-    await query(`
+    if (updated.length > 0) {
+      io.emit("device:status", { updated });
+    }
+
+    const alertRows = await query(`
       INSERT INTO alerts (device_id, type, message)
       SELECT d.id, 'signal_loss',
              'Pérdida de señal: el dispositivo ' || d.code || ' no responde'
@@ -76,13 +108,24 @@ setInterval(async () => {
             AND a.type = 'signal_loss'
             AND a.created_at > NOW() - INTERVAL '5 minutes'
         )
+      RETURNING *
     `);
+
+    for (const alert of alertRows) {
+      io.emit("alert:new", {
+        id: alert.id,
+        deviceId: alert.device_id,
+        type: alert.type,
+        message: alert.message,
+        createdAt: alert.created_at,
+      });
+    }
   } catch (err) {
     console.error("Signal loss check error:", err);
   }
 }, 5000);
 
-app.listen(port, async () => {
+httpServer.listen(port, async () => {
   console.log(`Fleet Control PUJ backend listening on port ${port}`);
-  await ensureDemoUser();
+  await ensureDemoUsers();
 });

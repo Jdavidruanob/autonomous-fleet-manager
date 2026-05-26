@@ -8,8 +8,8 @@ import { cn } from "@/lib/utils";
 
 export function Dock() {
   const pathname = usePathname();
-  const { role } = useAppState();
-  const visibleItems = navItems.filter((item) => !item.adminOnly || role === "administrator");
+  const { user } = useAppState();
+  const visibleItems = navItems.filter((item) => !item.adminOnly || user?.role === "administrator");
   const activeHref =
     visibleItems
       .filter((item) => item.href === "/" ? pathname === "/" : pathname === item.href || pathname.startsWith(`${item.href}/`))

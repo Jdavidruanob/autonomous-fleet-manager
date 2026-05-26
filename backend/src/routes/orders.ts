@@ -8,7 +8,7 @@ const router = Router();
 
 router.get("/", async (req, res) => {
   try {
-    const { status, type, deviceId, limit = 50 } = req.query;
+    const { status, type, deviceId, from, to, limit = 50 } = req.query;
 
     let sql = `
       SELECT o.*,
@@ -37,6 +37,14 @@ router.get("/", async (req, res) => {
     if (deviceId) {
       sql += ` AND o.device_id = $${p++}`;
       params.push(deviceId);
+    }
+    if (from) {
+      sql += ` AND o.created_at >= $${p++}`;
+      params.push(from as string);
+    }
+    if (to) {
+      sql += ` AND o.created_at < ($${p++}::date + INTERVAL '1 day')`;
+      params.push(to as string);
     }
 
     sql += ` ORDER BY o.created_at DESC LIMIT $${p++}`;
@@ -177,8 +185,38 @@ router.post("/", async (req, res) => {
       return res.status(404).json({ success: false, error: "Device not found" });
     }
 
+    // RF-24: reject if device not available or battery < 20%
+    if (device.status !== "available") {
+      return res.status(400).json({
+        success: false,
+        error: `Dispositivo no disponible (estado actual: ${device.status}${device.sub_status ? ` / ${device.sub_status}` : ""})`,
+      });
+    }
+    if (Number(device.battery_level) < 20) {
+      return res.status(400).json({
+        success: false,
+        error: `Batería insuficiente: ${Math.round(device.battery_level)}% — se requiere mínimo 20% para operar`,
+      });
+    }
+
     if (type === "recording" && device.type !== "drone") {
       return res.status(400).json({ success: false, error: "Recording orders require a drone" });
+    }
+
+    // RF-06: reject overlapping time slots for the same device
+    const overlap = await queryOne<any>(`
+      SELECT id, start_time, end_time
+      FROM time_slots
+      WHERE device_id = $1
+        AND tstzrange(start_time, end_time, '[)') && tstzrange($2::timestamptz, $3::timestamptz, '[)')
+    `, [deviceId, startTime, endTime]);
+    if (overlap) {
+      const fmt = (iso: string) =>
+        new Date(iso).toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit", timeZone: "America/Bogota" });
+      return res.status(400).json({
+        success: false,
+        error: `El dispositivo ya tiene una misión reservada de ${fmt(overlap.start_time)} a ${fmt(overlap.end_time)}. Elige otra franja horaria.`,
+      });
     }
 
     const originPoint = await queryOne<any>("SELECT * FROM campus_points WHERE id = $1", [originPointId]);

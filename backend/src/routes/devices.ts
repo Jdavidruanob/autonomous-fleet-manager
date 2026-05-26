@@ -8,12 +8,21 @@ router.get("/", async (_req, res) => {
   try {
     const rows = await query<DeviceRow>(
       `SELECT d.*,
-              (SELECT t.signal_lost FROM telemetry t WHERE t.device_id = d.id ORDER BY t.recorded_at DESC LIMIT 1) as signal_lost
+              t.latitude as last_lat,
+              t.longitude as last_lon,
+              t.speed as last_speed,
+              t.signal_lost
        FROM devices d
+       LEFT JOIN LATERAL (
+         SELECT latitude, longitude, speed, signal_lost
+         FROM telemetry
+         WHERE device_id = d.id
+         ORDER BY recorded_at DESC LIMIT 1
+       ) t ON true
        ORDER BY d.code`
     );
 
-    const devices: Device[] = rows.map((row) => {
+    const devices: Device[] = rows.map((row: any) => {
       return {
         id: row.id,
         name: row.name,
@@ -24,6 +33,9 @@ router.get("/", async (_req, res) => {
         batteryLevel: Number(row.battery_level),
         accumulatedKm: Number(row.accumulated_km),
         flightHours: Number(row.flight_hours),
+        latitude: row.last_lat != null ? Number(row.last_lat) : Number(row.base_latitude),
+        longitude: row.last_lon != null ? Number(row.last_lon) : Number(row.base_longitude),
+        speed: row.last_speed != null ? Number(row.last_speed) : null,
         currentRoute:
           row.current_route_origin && row.current_route_destination
             ? { origin: row.current_route_origin, destination: row.current_route_destination }

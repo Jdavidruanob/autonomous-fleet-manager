@@ -162,8 +162,8 @@ export default function NewOrderPage() {
 
   const availableDevices = devices.filter((device) => {
     if (form.type === "recording" && device.type !== "drone") return false;
-    if (deviceTypeFilter === "all") return true;
-    return device.type === deviceTypeFilter;
+    if (deviceTypeFilter !== "all" && device.type !== deviceTypeFilter) return false;
+    return true;
   });
 
   const selectedService = serviceOptions.find((option) => option.type === form.type);
@@ -455,11 +455,17 @@ export default function NewOrderPage() {
                       disabled={submitting}
                     >
                       <option value="">Seleccionar dispositivo</option>
-                      {availableDevices.map((device) => (
-                        <option key={device.id} value={device.id}>
-                          {device.code} - {device.type === "robot" ? "Robot" : "Dron"}
-                        </option>
-                      ))}
+                      {availableDevices.map((device) => {
+                        const lowBattery = device.batteryLevel < 20;
+                        const notAvailable = device.status !== "available";
+                        const disabled = lowBattery || notAvailable;
+                        const label = `${device.code} — ${device.type === "robot" ? "Robot" : "Dron"} · ${Math.round(device.batteryLevel)}%${lowBattery ? " ⚠ Batería baja" : ""}${notAvailable ? ` (${device.status})` : ""}`;
+                        return (
+                          <option key={device.id} value={device.id} disabled={disabled}>
+                            {label}
+                          </option>
+                        );
+                      })}
                     </select>
                     {selectedDevice && (
                       <span className="block text-xs text-muted-foreground">

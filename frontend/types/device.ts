@@ -12,6 +12,9 @@ export interface Device {
   batteryLevel: number;
   accumulatedKm: number;
   flightHours: number;
+  latitude: number | null;
+  longitude: number | null;
+  speed: number | null;
   currentRoute: { origin: string; destination: string } | null;
 }
 

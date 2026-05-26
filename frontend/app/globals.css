@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Leaflet map styles */
+@import "leaflet/dist/leaflet.css";
+
 :root {
   --radius: 0.5rem;
   --background: 255 255 255;

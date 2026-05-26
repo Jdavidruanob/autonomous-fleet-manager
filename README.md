@@ -1,38 +1,81 @@
-# Fleet Control PUJ
+# Fleet Control PUJ - Gestor de Flota Autónoma
 
-Fleet Control PUJ is an internal operations dashboard for autonomous delivery robots and event-recording drones at Pontificia Universidad Javeriana Cali. The product has two roles, `operator` and `administrator`, and will eventually coordinate orders, telemetry, alerts, weather restrictions, QR-based delivery flows, and a Python simulator.
+Fleet Control PUJ es una plataforma de operaciones y panel de control interno para el monitoreo y gestión de una flota simulada de robots autónomos de reparto y drones de grabación en el campus de la **Pontificia Universidad Javeriana Cali**.
 
-## Demo Scope
+Este repositorio forma parte del proyecto final de grado. El documento detallado con toda la información técnica, teórica y de diseño de la entrega final se encuentra en el siguiente enlace:
+👉 **[Documento de la Entrega Final (Overleaf)](https://www.overleaf.com/read/dcqtcfdyfyby#2728aa)** *(este enlace se puede configurar posteriormente)*
 
-This codebase is a **working demo** that implements **10 specific requirements** (RF-01, RF-04, RF-05, RF-06, RF-09, RF-18, RF-19, RF-20, RF-21, RF-23) out of the 60 modeled for the complete system. The goal is that these 10 requirements work correctly and match their specification exactly.
+---
 
-See [SPEC.md](SPEC.md) for the full context.
+## 🎯 Alcance del Demo
 
-Current repository status:
-- Frontend shell initialized in Next.js with header, bottom dock, demo navigation, and placeholder pages.
-- Backend initialized in Express + TypeScript with only the base server bootstrapped.
-- PostgreSQL schema initialized through Docker via `database/init.sql`.
-- Simulator folder is still a placeholder.
+Este código representa un **demo completamente funcional** diseñado para validar e implementar exactamente **10 requisitos funcionales clave** de los 60 modelados en el sistema a gran escala del proyecto final. 
 
-To run the project: create `.env` from `.env.example`, then use `docker compose up --build` the first time. After that, normal development uses `docker compose up`. Full workflow: [docs/DEVS.md](/home/jdavidruanob/code/autonomous-fleet-manager/docs/DEVS.md).
+Para ver el comportamiento interno esperado, flujos de negocio y la especificación detallada de estos 10 requisitos, consulta el archivo [Especificación del Sistema (SPEC.md)](SPEC.md).
 
-Core project context:
-- Product and functional scope: [SPEC.md](/home/jdavidruanob/code/autonomous-fleet-manager/SPEC.md)
-- Agent handoff and implementation status: [AGENTS.md](/home/jdavidruanob/code/autonomous-fleet-manager/AGENTS.md)
-- Database reference: [docs/DATABASE.md](/home/jdavidruanob/code/autonomous-fleet-manager/docs/DATABASE.md)
-- Design system reference: [docs/DESIGN_SYSTEM.md](/home/jdavidruanob/code/autonomous-fleet-manager/docs/DESIGN_SYSTEM.md)
+---
 
-## Folder Structure
+## 💻 Stack Tecnológico
+
+El proyecto está diseñado bajo una arquitectura modular y moderna:
+
+- **Frontend**: Next.js (App Router), TypeScript, Tailwind CSS para estilos premium y dinámicos.
+- **Backend**: Node.js, Express, TypeScript para el manejo de rutas y lógica de negocio.
+- **Base de Datos**: PostgreSQL 15, encargada de la persistencia de usuarios, órdenes, dispositivos y logs.
+- **Tiempo Real (Real-time)**: Socket.io para la telemetría activa en tiempo real.
+- **Simulador**: Servicio independiente en Python que emula los movimientos, batería y estado físico de los dispositivos.
+- **Entorno de Ejecución**: Docker Compose para la orquestación local y estandarización del ambiente de desarrollo.
+
+---
+
+## 🚀 Instalación y Uso Rápido
+
+El entorno completo de desarrollo se ejecuta mediante contenedores de Docker. Consulta la guía detallada en [Configuración del Desarrollador (docs/DEVS.md)](docs/DEVS.md) para más detalles.
+
+### Pasos Iniciales:
+
+1. **Clonar el repositorio** y entrar en la carpeta del proyecto.
+2. **Crear el archivo de variables de entorno**:
+   ```bash
+   cp .env.example .env
+   ```
+3. **Construir y levantar el entorno por primera vez** (o tras cambios de dependencias):
+   ```bash
+   docker compose up --build
+   ```
+4. **Levantar el entorno para desarrollo diario**:
+   ```bash
+   docker compose up
+   ```
+5. **Acceder a la aplicación**:
+   Abre tu navegador en [http://localhost:3000](http://localhost:3000).
+
+---
+
+## 📂 Estructura del Proyecto
 
 ```text
 .
-├── AGENTS.md
-├── SPEC.md
-├── .devcontainer/
-├── backend/
-├── database/
-├── docs/
-├── docker-compose.yml
-├── frontend/
-└── simulator/
+├── AGENTS.md             # Guía técnica de relevo y checklist para agentes de IA
+├── SPEC.md               # Especificación funcional de los 10 requisitos y reglas internas
+├── docker-compose.yml    # Orquestación de servicios en Docker
+├── backend/              # Código fuente del servidor Express (Node.js + TS)
+├── frontend/             # Código fuente de la interfaz de usuario (Next.js)
+├── database/             # Scripts de inicialización y esquema de PostgreSQL
+├── simulator/            # Código fuente del simulador físico en Python
+└── docs/                 # Documentación técnica adicional (DB, Diseño, etc.)
+    ├── DATABASE.md       # Referencia del esquema de la Base de Datos
+    ├── DESIGN_SYSTEM.md  # Tokens visuales y diseño premium del sistema
+    └── DEVS.md           # Guía detallada de instalación y solución de problemas
 ```
+
+---
+
+## 👥 Contribución y Desarrollo
+
+- **Ramas**: El desarrollo se realiza sobre ramas de características basadas en la rama principal.
+- **Base de Datos**: Si deseas reiniciar los datos y volver a ejecutar el esquema de la base de datos de manera limpia, utiliza:
+  ```bash
+   docker compose down -v
+   docker compose up --build
+  ```
