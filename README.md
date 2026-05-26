@@ -3,7 +3,7 @@
 Fleet Control PUJ es una plataforma de operaciones y panel de control interno para el monitoreo y gestión de una flota simulada de robots autónomos de reparto y drones de grabación en el campus de la **Pontificia Universidad Javeriana Cali**.
 
 Este repositorio forma parte del proyecto final de grado. El documento detallado con toda la información técnica, teórica y de diseño de la entrega final se encuentra en el siguiente enlace:
-👉 **[Documento de la Entrega Final (Overleaf)](https://www.overleaf.com/read/dcqtcfdyfyby#2728aa)** *(este enlace se puede configurar posteriormente)*
+👉 **[Documento de la Entrega Final ]([https://www.overleaf.com/read/dcqtcfdyfyby#2728aa](https://drive.google.com/file/d/1MGXuxiOFTTuLPXiUF7opfhuQ92TFwlTK/view?usp=sharing))** *(este enlace se puede configurar posteriormente)*
 
 ---
 
