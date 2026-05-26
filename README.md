@@ -50,6 +50,17 @@ El entorno completo de desarrollo se ejecuta mediante contenedores de Docker. Co
 5. **Acceder a la aplicación**:
    Abre tu navegador en [http://localhost:3000](http://localhost:3000).
 
+### Credenciales de Acceso (Demo)
+
+El sistema crea automáticamente dos cuentas de demostración al iniciar por primera vez:
+
+| Rol | Correo | Contraseña |
+|---|---|---|
+| **Administrador** | `admin@javerianacali.edu.co` | `Admin1234` |
+| **Operador** | `operador@javerianacali.edu.co` | `Operador1234` |
+
+> La página de login también incluye botones de **acceso rápido demo** que rellenan las credenciales automáticamente.
+
 ---
 
 ## 📂 Estructura del Proyecto
