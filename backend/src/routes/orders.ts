@@ -3,6 +3,7 @@ import { query, queryOne } from "../db";
 import crypto from "crypto";
 import QRCode from "qrcode";
 import { Resend } from "resend";
+import { requireAuth } from "../middleware/auth";
 
 const router = Router();
 
@@ -143,7 +144,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", requireAuth, async (req, res) => {
   try {
     const {
       type,
@@ -239,7 +240,7 @@ router.post("/", async (req, res) => {
       });
     }
 
-    const operatorId = "00000000-0000-0000-0000-000000000000";
+    const operatorId = req.user!.userId;
 
     const orderId = crypto.randomUUID();
     const qrHash = `ORD-${orderId.slice(0, 8).toUpperCase()}`;

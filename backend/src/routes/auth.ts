@@ -34,10 +34,11 @@ router.post("/login", async (req, res) => {
 
     await query("UPDATE users SET last_login = NOW() WHERE id = $1", [user.id]);
 
+    const jwtSecret = process.env.JWT_SECRET || "fleet_puj_demo_secret_2025";
     const token = jwt.sign(
       { userId: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET!,
-      { expiresIn: process.env.JWT_EXPIRES_IN ?? "8h" }
+      jwtSecret,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "8h" }
     );
 
     res.json({

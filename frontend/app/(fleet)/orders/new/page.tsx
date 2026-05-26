@@ -5,6 +5,7 @@ import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, ClipboardCheck, L
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Device, DeviceType } from "@/types/device";
+import { authHeaders } from "@/lib/auth";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const INSTITUTIONAL_EMAIL_RE = /^[A-Z0-9._%+-]+@javerianacali\.edu\.co$/i;
@@ -308,7 +309,7 @@ export default function NewOrderPage() {
 
       const res = await fetch(`${API_BASE}/api/orders`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify({
           type: form.type,
           deviceId: form.deviceId,
